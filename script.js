@@ -37,8 +37,12 @@ const passwordMessage = document.getElementById('passwordMessage');
 const submitPassword = document.getElementById('submitPassword');
 const cancelPassword = document.getElementById('cancelPassword');
 
+// 回数カウンター要素
+const spinCountElement = document.getElementById('spinCount');
+
 // あいことば機能の状態
 let boostActive = false; // 10倍ブースト有効フラグ
+let todaySpinCount = 0; // 今日のルーレット回数
 
 // ルーレットを描画
 function drawRoulette(rotation = 0) {
@@ -180,6 +184,9 @@ function spinRoulette() {
     startButton.textContent = '回転中...';
     canvas.classList.add('spinning');
     
+    // 回数をカウントアップ
+    incrementSpinCount();
+    
     // 選ばれるアイテムのインデックスを決定
     const selectedIndex = selectRandomItem();
     
@@ -271,7 +278,7 @@ function closePopup() {
     resultPopup.classList.remove('show');
 }
 
-// ===== あいことば機能 =====
+// ===== 回数カウンター機能 =====
 
 // 今日の日付を取得（YYYY-MM-DD形式）
 function getTodayDateString() {
@@ -281,6 +288,46 @@ function getTodayDateString() {
     const day = String(today.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
 }
+
+// 回数を読み込んで表示を更新
+function loadSpinCount() {
+    const savedDate = localStorage.getItem('spinCountDate');
+    const savedCount = localStorage.getItem('spinCount');
+    const todayDate = getTodayDateString();
+    
+    // 日付が変わっていたらリセット
+    if (savedDate !== todayDate) {
+        todaySpinCount = 0;
+        localStorage.setItem('spinCountDate', todayDate);
+        localStorage.setItem('spinCount', '0');
+    } else {
+        // 今日の回数を読み込む
+        todaySpinCount = parseInt(savedCount) || 0;
+    }
+    
+    // 表示を更新
+    updateSpinCountDisplay();
+}
+
+// 回数をカウントアップ
+function incrementSpinCount() {
+    todaySpinCount++;
+    localStorage.setItem('spinCount', todaySpinCount.toString());
+    updateSpinCountDisplay();
+}
+
+// 回数表示を更新
+function updateSpinCountDisplay() {
+    spinCountElement.textContent = todaySpinCount;
+    
+    // 回数に応じてアニメーション
+    spinCountElement.style.animation = 'none';
+    setTimeout(() => {
+        spinCountElement.style.animation = 'countUp 0.5s ease-out';
+    }, 10);
+}
+
+// ===== あいことば機能 =====
 
 // 日付から今日のあいことばを決定
 function getTodayPassword() {
@@ -437,5 +484,6 @@ passwordPopup.addEventListener('click', (e) => {
 });
 
 // 初期化
+loadSpinCount(); // 回数を読み込み
 checkBoostStatus(); // ブーストの状態を確認
 drawRoulette(); // ルーレットを描画
