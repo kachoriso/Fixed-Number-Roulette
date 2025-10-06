@@ -53,6 +53,13 @@ h1 {
     padding: 0 1rem;
 }
 
+/* デスクトップではアザラシボタンとの重なりを防止 */
+@media (min-width: 769px) {
+    h1 {
+        padding-left: 100px;
+    }
+}
+
 body.boost-active h1 {
     color: #FFD700;
     text-shadow: 
@@ -596,8 +603,15 @@ body.boost-active::after {
         width: 50px;
         height: 50px;
         font-size: 1.5rem;
-        top: 10px;
-        left: 10px;
+        top: 15px;
+        left: 15px;
+    }
+    
+    /* スマホではタイトルを中央に配置 */
+    h1 {
+        padding-left: 70px;
+        padding-right: 1rem;
+        text-align: center;
     }
     
     .password-popup {
@@ -625,6 +639,8 @@ body.boost-active::after {
     h1 {
         font-size: clamp(1.2rem, 7vw, 1.8rem);
         margin-bottom: 1.5rem;
+        padding-left: 60px;
+        padding-right: 0.5rem;
     }
     
     .roulette-wrapper {
@@ -634,6 +650,14 @@ body.boost-active::after {
     .roulette-container {
         width: min(280px, calc(100vw - 1rem));
         height: min(280px, calc(100vw - 1rem));
+    }
+    
+    .seal-button {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+        top: 12px;
+        left: 12px;
     }
     
     .arrow {
