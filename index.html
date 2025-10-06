@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ルーレットアプリ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- アザラシボタン -->
+    <button id="sealButton" class="seal-button" title="あいことば入力">🦭</button>
+
+    <div class="container">
+        <h1>ルーレットチャレンジ</h1>
+        <div class="roulette-wrapper">
+            <div class="roulette-container">
+                <div class="arrow"></div>
+                <canvas id="rouletteCanvas" width="500" height="500"></canvas>
+            </div>
+        </div>
+        <button id="startButton" class="start-button">スタート</button>
+        <div class="description">
+            <p>スタートボタンを押してルーレットを回そう！</p>
+        </div>
+    </div>
+
+    <!-- 結果ポップアップ -->
+    <div id="resultPopup" class="popup-overlay">
+        <div class="popup-content">
+            <h2>結果発表！</h2>
+            <div class="result-text" id="resultText"></div>
+            <button id="closeButton" class="close-button">閉じる</button>
+        </div>
+    </div>
+
+    <!-- あいことばポップアップ -->
+    <div id="passwordPopup" class="popup-overlay">
+        <div class="popup-content password-popup">
+            <h2>🦭 あいことば 🦭</h2>
+            <p id="passwordMessage" class="password-message">今日のあいことばを入力してください</p>
+            <input type="text" id="passwordInput" class="password-input" placeholder="あいことばを入力" maxlength="20">
+            <div class="password-buttons">
+                <button id="submitPassword" class="password-button submit">決定</button>
+                <button id="cancelPassword" class="password-button cancel">キャンセル</button>
+            </div>
+            <p class="password-hint">ヒント: 1日1回だけ入力できます</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
