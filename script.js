@@ -32,10 +32,14 @@ const closeButton = document.getElementById('closeButton');
 // あいことば機能の要素
 const sealButton = document.getElementById('sealButton');
 const passwordPopup = document.getElementById('passwordPopup');
-const passwordInput = document.getElementById('passwordInput');
+const passwordChoices = document.getElementById('passwordChoices');
 const passwordMessage = document.getElementById('passwordMessage');
-const submitPassword = document.getElementById('submitPassword');
 const cancelPassword = document.getElementById('cancelPassword');
+const hintButton = document.getElementById('hintButton');
+const hintMessage = document.getElementById('hintMessage');
+
+// 開発用リセットボタン
+// const devResetButton = document.getElementById('devResetButton');
 
 // 回数カウンター要素
 const spinCountElement = document.getElementById('spinCount');
@@ -281,8 +285,11 @@ function closePopup() {
 // ===== 回数カウンター機能 =====
 
 // 今日の日付を取得（YYYY-MM-DD形式）
+// テスト用のオフセットがある場合はそれを適用
 function getTodayDateString() {
+    const testOffset = parseInt(localStorage.getItem('testDayOffset') || '0');
     const today = new Date();
+    today.setDate(today.getDate() + testOffset);
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
@@ -329,14 +336,76 @@ function updateSpinCountDisplay() {
 
 // ===== あいことば機能 =====
 
-// 日付から今日のあいことばを決定
-function getTodayPassword() {
-    const passwords = ['アザラシ最高', 'タマザラシ最高', 'かわいい'];
+// あいことばの選択肢候補
+const passwordCandidates = [
+    'しぶき', 'ふぶき', 'ホシ', 'ココ', 'ココア', 
+    '月', 'ましろ', 'かつのり', 'よう', 'ゴクウ', 
+    'スカイ', 'ターボ', 'もちもち', 'はなまる', 'モヤ', 
+    'ユキ', 'アラレ', 'おんぷ', '雪音', 'ごますけ', 'ももか'
+];
+
+// 各あいことばのヒント
+const passwordHints = {
+    'しぶき': 'オレ',
+    'ふぶき': '冬の激しい雪のことです',
+    'ホシ': '夜空に輝くものです',
+    'ココ': '2文字のカタカナです',
+    'ココア': 'コココ',
+    '月': '1文字の漢字です',
+    'ましろ': '色の名前が入っています',
+    'かつのり': '人の名前のようです',
+    'よう': '2文字のひらがなです',
+    'ゴクウ': '有名な漫画のキャラクター名です',
+    'スカイ': '英語で「空」という意味です',
+    'ターボ': '車のエンジンに関係する言葉です',
+    'もちもち': '繰り返しの言葉です',
+    'はなまる': '良くできた時にもらえるものです',
+    'モヤ': 'ソーダを作ります',
+    'ユキ': '冬に降るものです',
+    'アラレ': '氷の粒が降ってくる現象です',
+    'おんぷ': '音楽に関係する言葉です',
+    '雪音': '漢字とひらがなの組み合わせです',
+    'ごますけ': 'ごまに関係する言葉です',
+    'ももか': 'かわいいです'
+};
+
+// 日付ベースの疑似乱数生成器（シード値から決定的な乱数を生成）
+function seededRandom(seed) {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+}
+
+// 今日の選択肢と正解を取得
+function getTodayPasswordData() {
+    const testOffset = parseInt(localStorage.getItem('testDayOffset') || '0');
     const today = new Date();
-    // 日付を使ってインデックスを決定（日によって変わる）
+    today.setDate(today.getDate() + testOffset);
     const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
-    const index = dayOfYear % passwords.length;
-    return passwords[index];
+    
+    // 日付をシードとして使用
+    const seed = dayOfYear;
+    
+    // 配列をシャッフル（Fisher-Yates）
+    const shuffled = [...passwordCandidates];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(seededRandom(seed * 1000 + i) * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    
+    // 最初の4つを選択肢とする
+    const choices = shuffled.slice(0, 4);
+    
+    // 選択肢の中に「ももか」が含まれている場合は、必ず「ももか」を正解にする
+    let correctPassword;
+    if (choices.includes('ももか')) {
+        correctPassword = 'ももか';
+    } else {
+        // 4つの中から正解をランダムに1つ選ぶ
+        const correctIndex = Math.floor(seededRandom(seed * 7919) * 4);
+        correctPassword = choices[correctIndex];
+    }
+    
+    return { choices, correctPassword };
 }
 
 // 今日すでに入力済みかチェック
@@ -344,6 +413,36 @@ function hasEnteredToday() {
     const lastEntryDate = localStorage.getItem('lastPasswordEntry');
     const todayDate = getTodayDateString();
     return lastEntryDate === todayDate;
+}
+
+// ヒントが使用可能かチェック（5日に1回）
+function canUseHint() {
+    const lastHintDate = localStorage.getItem('lastHintUsedDate');
+    if (!lastHintDate) {
+        return true; // 一度も使っていない場合は使用可能
+    }
+    
+    const lastUsed = new Date(lastHintDate);
+    const today = new Date();
+    const diffTime = today - lastUsed;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays >= 5; // 5日以上経過していれば使用可能
+}
+
+// 次にヒントが使用可能になるまでの日数を計算
+function getDaysUntilNextHint() {
+    const lastHintDate = localStorage.getItem('lastHintUsedDate');
+    if (!lastHintDate) {
+        return 0;
+    }
+    
+    const lastUsed = new Date(lastHintDate);
+    const today = new Date();
+    const diffTime = today - lastUsed;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    return Math.max(0, 5 - diffDays);
 }
 
 // ブーストが有効かチェック
@@ -370,46 +469,119 @@ function checkBoostStatus() {
 
 // あいことばポップアップを開く
 function openPasswordPopup() {
+    // ヒントメッセージをリセット
+    hintMessage.textContent = '';
+    hintMessage.className = 'hint-message';
+    
     if (hasEnteredToday()) {
         if (boostActive) {
             passwordMessage.textContent = '今日はすでにブーストが有効です！🎉';
             passwordMessage.className = 'password-message success';
         } else {
-            passwordMessage.textContent = '今日はすでに入力済みです。明日また挑戦してください！';
+            passwordMessage.textContent = '今日はすでに選択済みです。明日また挑戦してください！';
             passwordMessage.className = 'password-message error';
         }
-        passwordInput.disabled = true;
-        submitPassword.disabled = true;
+        passwordChoices.innerHTML = '';
+        hintButton.style.display = 'none'; // ヒントボタンを非表示
     } else {
-        passwordMessage.textContent = '今日のあいことばを入力してください';
+        passwordMessage.textContent = '今日のあいことばを選んでください';
         passwordMessage.className = 'password-message';
-        passwordInput.disabled = false;
-        submitPassword.disabled = false;
-        passwordInput.value = '';
+        
+        // 今日の選択肢を取得
+        const { choices } = getTodayPasswordData();
+        
+        // 選択肢ボタンを生成
+        passwordChoices.innerHTML = '';
+        choices.forEach((choice) => {
+            const button = document.createElement('button');
+            button.className = 'password-choice-button';
+            button.textContent = choice;
+            button.addEventListener('click', () => checkPasswordChoice(choice));
+            passwordChoices.appendChild(button);
+        });
+        
+        // ヒントボタンの状態を更新
+        updateHintButton();
     }
     
     passwordPopup.classList.add('show');
-    if (!passwordInput.disabled) {
-        passwordInput.focus();
+}
+
+// ヒントボタンの状態を更新
+function updateHintButton() {
+    if (canUseHint()) {
+        hintButton.style.display = 'inline-block';
+        hintButton.disabled = false;
+        hintButton.textContent = '💡 ヒントを見る';
+        hintButton.className = 'hint-button';
+    } else {
+        hintButton.style.display = 'inline-block';
+        hintButton.disabled = true;
+        const daysLeft = getDaysUntilNextHint();
+        hintButton.textContent = `💡 ヒント（あと${daysLeft}日）`;
+        hintButton.className = 'hint-button disabled';
     }
+}
+
+// ヒントを表示
+function showHint() {
+    if (!canUseHint()) {
+        const daysLeft = getDaysUntilNextHint();
+        hintMessage.textContent = `ヒントは${daysLeft}日後に使用できます`;
+        hintMessage.className = 'hint-message error';
+        return;
+    }
+    
+    const { correctPassword } = getTodayPasswordData();
+    const hint = passwordHints[correctPassword];
+    
+    // ヒント使用日を保存
+    const todayDate = getTodayDateString();
+    localStorage.setItem('lastHintUsedDate', todayDate);
+    
+    // ヒントを表示
+    hintMessage.textContent = `ヒント: ${hint}`;
+    hintMessage.className = 'hint-message show';
+    
+    // ボタンを無効化
+    hintButton.disabled = true;
+    hintButton.textContent = '💡 ヒント使用済み';
+    hintButton.className = 'hint-button used';
 }
 
 // あいことばポップアップを閉じる
 function closePasswordPopup() {
     passwordPopup.classList.remove('show');
-    passwordInput.value = '';
 }
 
-// あいことばを確認
-function checkPassword() {
+// 選択したあいことばを確認
+function checkPasswordChoice(selectedChoice) {
     if (hasEnteredToday()) {
         return;
     }
     
-    const enteredPassword = passwordInput.value.trim();
-    const correctPassword = getTodayPassword();
+    const { correctPassword } = getTodayPasswordData();
     
-    if (enteredPassword === correctPassword) {
+    // すべての選択肢ボタンを取得
+    const allButtons = passwordChoices.querySelectorAll('.password-choice-button');
+    
+    // すべてのボタンを無効化
+    allButtons.forEach(button => {
+        button.disabled = true;
+        button.style.cursor = 'not-allowed';
+        
+        // 正解のボタンを緑色に
+        if (button.textContent === correctPassword) {
+            button.classList.add('correct');
+        }
+        
+        // 選択したボタンが不正解の場合は赤色に
+        if (button.textContent === selectedChoice && selectedChoice !== correctPassword) {
+            button.classList.add('incorrect');
+        }
+    });
+    
+    if (selectedChoice === correctPassword) {
         // 正解！
         const todayDate = getTodayDateString();
         localStorage.setItem('lastPasswordEntry', todayDate);
@@ -421,35 +593,31 @@ function checkPassword() {
         // ルーレットを再描画して10倍表示に更新
         drawRoulette(currentRotation);
         
-        passwordMessage.textContent = '正解！ 今日は回数が10倍になります！🎉';
+        passwordMessage.textContent = `正解！「${correctPassword}」が当たりでした！🎉\n今日は回数が10倍になります！`;
         passwordMessage.className = 'password-message success';
-        passwordInput.disabled = true;
-        submitPassword.disabled = true;
         
         // ボタンを非表示に
         sealButton.classList.add('hidden');
         
-        // 2秒後に自動で閉じる
+        // 3秒後に自動で閉じる
         setTimeout(() => {
             closePasswordPopup();
-        }, 2000);
+        }, 3000);
     } else {
         // 不正解
         const todayDate = getTodayDateString();
         localStorage.setItem('lastPasswordEntry', todayDate);
         
-        passwordMessage.textContent = '残念...不正解です。明日また挑戦してください！';
+        passwordMessage.textContent = `残念...不正解です。\n正解は「${correctPassword}」でした。\n明日また挑戦してください！`;
         passwordMessage.className = 'password-message error';
-        passwordInput.disabled = true;
-        submitPassword.disabled = true;
         
         // ボタンを非表示に
         sealButton.classList.add('hidden');
         
-        // 2秒後に自動で閉じる
+        // 3秒後に自動で閉じる
         setTimeout(() => {
             closePasswordPopup();
-        }, 2000);
+        }, 3000);
     }
 }
 
@@ -466,15 +634,8 @@ resultPopup.addEventListener('click', (e) => {
 
 // あいことば機能のイベントリスナー
 sealButton.addEventListener('click', openPasswordPopup);
-submitPassword.addEventListener('click', checkPassword);
 cancelPassword.addEventListener('click', closePasswordPopup);
-
-// Enterキーでもあいことばを送信
-passwordInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && !passwordInput.disabled) {
-        checkPassword();
-    }
-});
+hintButton.addEventListener('click', showHint);
 
 // あいことばポップアップの背景をクリックしても閉じる
 passwordPopup.addEventListener('click', (e) => {
@@ -483,7 +644,87 @@ passwordPopup.addEventListener('click', (e) => {
     }
 });
 
+// ===== 開発用リセット機能 =====
+
+// 全データをリセットする関数（グローバルに公開してコンソールからも使用可能）
+function resetAllData() {
+    if (confirm('すべてのデータをリセットしますか？\n\n以下がリセットされます：\n・今日の回数\n・あいことば入力状態\n・ブースト状態\n・ヒント使用状態\n\n※日付が1日進み、新しい選択肢が表示されます')) {
+        // 日付オフセットを進める（異なる選択肢を表示するため）
+        const currentOffset = parseInt(localStorage.getItem('testDayOffset') || '0');
+        localStorage.setItem('testDayOffset', (currentOffset + 1).toString());
+        
+        // localStorageの状態データをクリア
+        localStorage.removeItem('spinCountDate');
+        localStorage.removeItem('spinCount');
+        localStorage.removeItem('lastPasswordEntry');
+        localStorage.removeItem('boostActiveDate');
+        localStorage.removeItem('lastHintUsedDate');
+        
+        // 状態をリセット
+        todaySpinCount = 0;
+        boostActive = false;
+        
+        // 表示を更新
+        updateSpinCountDisplay();
+        sealButton.classList.remove('active');
+        sealButton.classList.remove('hidden');
+        document.body.classList.remove('boost-active');
+        drawRoulette(currentRotation);
+        
+        // 今日の選択肢を確認（デバッグ用）
+        const { choices, correctPassword } = getTodayPasswordData();
+        
+        alert(`✅ データリセット完了！\n\n今日の選択肢: ${choices.join(', ')}\n正解: ${correctPassword}`);
+        console.log('🔄 データリセット完了');
+        console.log('今日の選択肢:', choices);
+        console.log('正解:', correctPassword);
+    }
+}
+
+// 日付オフセットを完全にリセットする関数（本番の日付に戻す）
+function resetToRealDate() {
+    if (confirm('テスト用の日付オフセットをリセットして、本番の日付に戻しますか？')) {
+        localStorage.removeItem('testDayOffset');
+        localStorage.removeItem('spinCountDate');
+        localStorage.removeItem('spinCount');
+        localStorage.removeItem('lastPasswordEntry');
+        localStorage.removeItem('boostActiveDate');
+        localStorage.removeItem('lastHintUsedDate');
+        
+        todaySpinCount = 0;
+        boostActive = false;
+        
+        updateSpinCountDisplay();
+        sealButton.classList.remove('active');
+        sealButton.classList.remove('hidden');
+        document.body.classList.remove('boost-active');
+        drawRoulette(currentRotation);
+        
+        alert('✅ 本番の日付に戻しました！');
+        console.log('🔄 本番の日付に戻しました');
+    }
+}
+
+// コンソールからも使用できるようにグローバルに公開
+window.resetAllData = resetAllData;
+window.resetToRealDate = resetToRealDate;
+
+// 開発用リセットボタンのイベントリスナー
+// devResetButton.addEventListener('click', resetAllData);
+
 // 初期化
 loadSpinCount(); // 回数を読み込み
 checkBoostStatus(); // ブーストの状態を確認
 drawRoulette(); // ルーレットを描画
+
+// コンソールにヒントを表示
+console.log('🔧 開発用コマンド:');
+console.log('  resetAllData() - データをリセットして日付を1日進める（新しい選択肢）');
+console.log('  resetToRealDate() - テスト用日付をリセットして本番の日付に戻す');
+
+// テスト中の場合は警告を表示
+const testOffset = parseInt(localStorage.getItem('testDayOffset') || '0');
+if (testOffset !== 0) {
+    console.warn(`⚠️ テストモード: 日付が${testOffset}日オフセットされています`);
+    console.log('  本番の日付に戻すには resetToRealDate() を実行してください');
+}

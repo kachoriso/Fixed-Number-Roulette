@@ -10,6 +10,9 @@
     <!-- アザラシボタン -->
     <button id="sealButton" class="seal-button" title="あいことば入力">🦭</button>
 
+    <!-- 開発用リセットボタン -->
+    <!-- <button id="devResetButton" class="dev-reset-button" title="開発用：全データをリセット">🔄</button> -->
+
     <div class="container">
         <h1>ルーレットチャレンジ</h1>
         <div class="spin-counter">
@@ -40,13 +43,18 @@
     <div id="passwordPopup" class="popup-overlay">
         <div class="popup-content password-popup">
             <h2>🦭 あいことば 🦭</h2>
-            <p id="passwordMessage" class="password-message">今日のあいことばを入力してください</p>
-            <input type="text" id="passwordInput" class="password-input" placeholder="あいことばを入力" maxlength="20">
+            <p id="passwordMessage" class="password-message">今日のあいことばを選んでください</p>
+            <div id="hintSection" class="hint-section">
+                <button id="hintButton" class="hint-button">💡 ヒントを見る</button>
+                <p id="hintMessage" class="hint-message"></p>
+            </div>
+            <div id="passwordChoices" class="password-choices">
+                <!-- 選択肢がJavaScriptで動的に生成されます -->
+            </div>
             <div class="password-buttons">
-                <button id="submitPassword" class="password-button submit">決定</button>
                 <button id="cancelPassword" class="password-button cancel">キャンセル</button>
             </div>
-            <p class="password-hint">ヒント: 1日1回だけ入力できます</p>
+            <p class="password-hint">ヒント: 1日1回だけ選択できます</p>
         </div>
     </div>
 

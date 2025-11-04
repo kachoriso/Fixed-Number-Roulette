@@ -488,6 +488,37 @@ body.boost-active::after {
     visibility: visible;
 }
 
+/* 開発用リセットボタン */
+.dev-reset-button {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%);
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    transition: all 0.3s ease;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
+}
+
+.dev-reset-button:hover {
+    transform: scale(1.1) rotate(180deg);
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
+    opacity: 1;
+}
+
+.dev-reset-button:active {
+    transform: scale(0.95) rotate(180deg);
+}
+
 .seal-button.hidden {
     opacity: 0;
     visibility: hidden;
@@ -526,6 +557,153 @@ body.boost-active::after {
     color: #666;
     font-size: 1rem;
     margin-bottom: 1.5rem;
+    white-space: pre-line;
+    line-height: 1.6;
+}
+
+/* ヒントセクション */
+.hint-section {
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.hint-button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #FFA726 0%, #FF7043 100%);
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 8px rgba(255, 167, 38, 0.3);
+    margin-bottom: 0.5rem;
+}
+
+.hint-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 167, 38, 0.5);
+}
+
+.hint-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #BDBDBD 0%, #9E9E9E 100%);
+}
+
+.hint-button.used {
+    background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
+    box-shadow: 0 3px 8px rgba(76, 175, 80, 0.3);
+}
+
+.hint-message {
+    font-size: 0.9rem;
+    color: #666;
+    min-height: 20px;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.hint-message.show {
+    background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+    color: #E65100;
+    font-weight: bold;
+    padding: 0.8rem;
+    border: 2px solid #FFB74D;
+    animation: hintAppear 0.4s ease-out;
+}
+
+.hint-message.error {
+    color: #f5576c;
+    font-weight: bold;
+}
+
+@keyframes hintAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 選択肢ボタンコンテナ */
+.password-choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+/* 選択肢ボタン */
+.password-choice-button {
+    padding: 1.2rem 1rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+}
+
+.password-choice-button:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+}
+
+.password-choice-button:active:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+}
+
+.password-choice-button:disabled {
+    opacity: 0.7;
+}
+
+/* 正解のボタン */
+.password-choice-button.correct {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    box-shadow: 0 4px 10px rgba(76, 175, 80, 0.4);
+    animation: correctPulse 0.6s ease-out;
+}
+
+/* 不正解のボタン */
+.password-choice-button.incorrect {
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    box-shadow: 0 4px 10px rgba(244, 67, 54, 0.4);
+    animation: incorrectShake 0.5s ease-out;
+}
+
+@keyframes correctPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+        box-shadow: 0 8px 20px rgba(76, 175, 80, 0.6);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes incorrectShake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-10px);
+    }
+    75% {
+        transform: translateX(10px);
+    }
 }
 
 .password-input {
@@ -665,6 +843,14 @@ body.boost-active::after {
         left: 15px;
     }
     
+    .dev-reset-button {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+        top: 15px;
+        right: 15px;
+    }
+    
     /* スマホではタイトルを中央に配置 */
     h1 {
         padding-left: 70px;
@@ -689,6 +875,24 @@ body.boost-active::after {
         min-width: 0;
         width: calc(100vw - 2rem);
         max-width: 400px;
+    }
+    
+    .hint-button {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .hint-message {
+        font-size: 0.85rem;
+    }
+    
+    .password-choices {
+        gap: 0.8rem;
+    }
+    
+    .password-choice-button {
+        padding: 1rem 0.8rem;
+        font-size: 1rem;
     }
     
     .password-input {
@@ -744,6 +948,14 @@ body.boost-active::after {
         left: 12px;
     }
     
+    .dev-reset-button {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+        top: 12px;
+        right: 12px;
+    }
+    
     .arrow {
         top: -15px;
         border-left: 15px solid transparent;
@@ -770,5 +982,23 @@ body.boost-active::after {
     
     .popup-content h2 {
         font-size: 1.8rem;
+    }
+    
+    .hint-button {
+        padding: 0.4rem 0.9rem;
+        font-size: 0.8rem;
+    }
+    
+    .hint-message {
+        font-size: 0.8rem;
+    }
+    
+    .password-choices {
+        gap: 0.6rem;
+    }
+    
+    .password-choice-button {
+        padding: 0.9rem 0.6rem;
+        font-size: 0.9rem;
     }
 }
